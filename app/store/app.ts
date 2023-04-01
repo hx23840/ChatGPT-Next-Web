@@ -299,6 +299,27 @@ export const useChatStore = create<ChatStore>()(
       },
 
       async onUserInput(content) {
+        // get recent messages
+        const recentMessages = get().getMessagesWithMemory();
+        let sendMessages: Message[] = [];
+
+        const pattern: string = "@caoz";
+        if (content.startsWith(pattern)) {
+          content = content.replace("@caoz", "");
+          let jsonString = await getKnowledge(content);
+
+          const parsedDocuments = JSON.parse(jsonString);
+          parsedDocuments.map((doc: any) => {
+            const knowledgeMessage: Message = {
+              role: "user",
+              content: doc.pageContent,
+              date: new Date().toLocaleString(),
+            };
+
+            sendMessages = sendMessages.concat(knowledgeMessage);
+          });
+        }
+
         const userMessage: Message = {
           role: "user",
           content,
@@ -312,24 +333,9 @@ export const useChatStore = create<ChatStore>()(
           streaming: true,
         };
 
-        // get recent messages
-        const recentMessages = get().getMessagesWithMemory();
-        let sendMessages = recentMessages.concat(userMessage);
+        sendMessages = recentMessages.concat(sendMessages).concat(userMessage);
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
-
-        const pattern: string = "@caoz";
-
-        if (content.startsWith(pattern)) {
-          let query = await getKnowledge(content);
-          const knowledgeMessage: Message = {
-            role: "user",
-            content: query,
-            date: new Date().toLocaleString(),
-          };
-
-          sendMessages = sendMessages.concat(knowledgeMessage);
-        }
 
         // save user's and bot's message
         get().updateCurrentSession((session) => {

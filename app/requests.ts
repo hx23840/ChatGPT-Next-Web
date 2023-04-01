@@ -44,7 +44,6 @@ function getHeaders() {
 
 export async function getKnowledge(query: string) {
   const response = await fetch(`/api/plugin?query=` + query);
-
   return response.text();
 }
 

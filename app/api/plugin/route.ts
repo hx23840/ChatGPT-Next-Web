@@ -10,11 +10,12 @@ async function handler(req: NextRequest) {
     auth: {
       bearer: bearer,
     },
+    topK: 3,
   });
 
   if (query != null) {
     const docs = await retriever.getRelevantDocuments(query);
-    return new Response(docs[0].pageContent);
+    return new Response(JSON.stringify(docs));
   } else {
     return new Response("No query provided");
   }
