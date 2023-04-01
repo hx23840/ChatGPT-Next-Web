@@ -4,6 +4,7 @@ import { persist } from "zustand/middleware";
 import { type ChatCompletionResponseMessage } from "openai";
 import {
   ControllerPool,
+  getKnowledge,
   requestChatStream,
   requestWithPrompt,
 } from "../requests";
@@ -313,9 +314,22 @@ export const useChatStore = create<ChatStore>()(
 
         // get recent messages
         const recentMessages = get().getMessagesWithMemory();
-        const sendMessages = recentMessages.concat(userMessage);
+        let sendMessages = recentMessages.concat(userMessage);
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
+
+        const pattern: string = "@caoz";
+
+        if (content.startsWith(pattern)) {
+          let query = await getKnowledge(content);
+          const knowledgeMessage: Message = {
+            role: "user",
+            content: query,
+            date: new Date().toLocaleString(),
+          };
+
+          sendMessages = sendMessages.concat(knowledgeMessage);
+        }
 
         // save user's and bot's message
         get().updateCurrentSession((session) => {
