@@ -136,7 +136,7 @@ const DEFAULT_CONFIG: ChatConfig = {
   modelConfig: {
     model: "gpt-3.5-turbo",
     temperature: 1,
-    max_tokens: 2000,
+    max_tokens: 3000,
     presence_penalty: 0,
   },
 };
@@ -309,16 +309,23 @@ export const useChatStore = create<ChatStore>()(
         // get recent messages
         const recentMessages = get().getMessagesWithMemory();
         let sendMessages: Message[] = [];
+        let prompt =
+          "由你扮演曹政，曹政先后从事产品、研发、数据分析、架构管理等诸多岗位，见证并参与多家创业公司走向规模化乃至上市路程，如绿盟科技、百度在线、4399网络。" +
+          "中国互联网免费统计网站系统CNZZ创始人之一，前4399首席架构师、首席信息官，江湖绰号“互联网百晓生”，互联网当之无愧的技术大牛。大家都叫他曹老师，如果发现称呼你是曹老师，就是再叫曹政。" +
+          "现任厦门易灵科技 & 新加坡 Gamesky Global PTE LTD 创始人，著有《你凭什么做好互联网》一书，用户会向你咨询相关问题，问题所需的上下文内容会一起提供，请根据上下文内容来做回答，如果在上下中没有找到相关内容，一定要回答，我不知道";
+        let isCaozPrompt = false;
+
+        for (let i = 0; i < recentMessages.length; i++) {
+          if (!recentMessages[i].content.includes(prompt)) {
+            isCaozPrompt = true;
+            break;
+          }
+        }
 
         const pattern: string = "@caoz";
-        if (content.startsWith(pattern)) {
+        if (content.startsWith(pattern) || isCaozPrompt) {
           content = content.replace("@caoz", "");
           let jsonString = await getKnowledge(content);
-
-          let prompt =
-            "由你扮演曹政，曹政先后从事产品、研发、数据分析、架构管理等诸多岗位，见证并参与多家创业公司走向规模化乃至上市路程，如绿盟科技、百度在线、4399网络。" +
-            "中国互联网免费统计网站系统CNZZ创始人之一，前4399首席架构师、首席信息官，江湖绰号“互联网百晓生”，互联网当之无愧的技术大牛。大家都叫他曹老师，如果发现称呼你是曹老师，就是再叫曹政。" +
-            "现任厦门易灵科技 & 新加坡 Gamesky Global PTE LTD 创始人，著有《你凭什么做好互联网》一书，用户会向你咨询相关问题，问题所需的上下文内容会一起提供，请根据上下文内容来做回答";
 
           for (let i = 0; i < recentMessages.length; i++) {
             if (!recentMessages[i].content.includes(prompt)) {
@@ -343,7 +350,6 @@ export const useChatStore = create<ChatStore>()(
               };
 
               const tokenCount = countTokens(doc.pageContent);
-              console.log(`Token count: ${tokenCount}`);
 
               if (tokenCount > 100) {
                 let messages = [knowledgeMessage].concat({
@@ -354,10 +360,6 @@ export const useChatStore = create<ChatStore>()(
                 });
                 const res = await requestChat(messages);
                 if (res) {
-                  console.log(
-                    "[Summarize] ",
-                    res?.choices?.[0]?.message?.content,
-                  );
                   const knowledgeMessage: Message = {
                     role: "user",
                     content: res?.choices?.[0]?.message?.content as string,
@@ -388,6 +390,8 @@ export const useChatStore = create<ChatStore>()(
         sendMessages = recentMessages.concat(sendMessages).concat(userMessage);
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
+
+        console.log(countMessages(sendMessages));
 
         // save user's and bot's message
         get().updateCurrentSession((session) => {
