@@ -5,6 +5,7 @@ import { type ChatCompletionResponseMessage } from "openai";
 import {
   ControllerPool,
   getKnowledge,
+  requestChat,
   requestChatStream,
   requestWithPrompt,
 } from "../requests";
@@ -213,6 +214,12 @@ function countMessages(msgs: Message[]) {
   return msgs.reduce((pre, cur) => pre + cur.content.length, 0);
 }
 
+function countTokens(text: string): number {
+  const tokenPattern = /([\p{L}\p{N}]+)|\s+|(.)\p{Zs}*/gu;
+  const tokens = Array.from(text.matchAll(tokenPattern));
+  return tokens.length;
+}
+
 const LOCAL_KEY = "chat-next-web-store";
 
 export const useChatStore = create<ChatStore>()(
@@ -308,16 +315,61 @@ export const useChatStore = create<ChatStore>()(
           content = content.replace("@caoz", "");
           let jsonString = await getKnowledge(content);
 
-          const parsedDocuments = JSON.parse(jsonString);
-          parsedDocuments.map((doc: any) => {
-            const knowledgeMessage: Message = {
-              role: "user",
-              content: doc.pageContent,
-              date: new Date().toLocaleString(),
-            };
+          let prompt =
+            "由你扮演曹政，曹政先后从事产品、研发、数据分析、架构管理等诸多岗位，见证并参与多家创业公司走向规模化乃至上市路程，如绿盟科技、百度在线、4399网络。" +
+            "中国互联网免费统计网站系统CNZZ创始人之一，前4399首席架构师、首席信息官，江湖绰号“互联网百晓生”，互联网当之无愧的技术大牛。大家都叫他曹老师，如果发现称呼你是曹老师，就是再叫曹政。" +
+            "现任厦门易灵科技 & 新加坡 Gamesky Global PTE LTD 创始人，著有《你凭什么做好互联网》一书，用户会向你咨询相关问题，问题所需的上下文内容会一起提供，请根据上下文内容来做回答";
 
-            sendMessages = sendMessages.concat(knowledgeMessage);
-          });
+          for (let i = 0; i < recentMessages.length; i++) {
+            if (!recentMessages[i].content.includes(prompt)) {
+              const userMessage: Message = {
+                role: "system",
+                content: prompt,
+                date: new Date().toLocaleString(),
+              };
+
+              sendMessages = sendMessages.concat(userMessage);
+              break;
+            }
+          }
+
+          const parsedDocuments = JSON.parse(jsonString);
+          await Promise.all(
+            parsedDocuments.map(async (doc: any) => {
+              const knowledgeMessage: Message = {
+                role: "user",
+                content: doc.pageContent,
+                date: new Date().toLocaleString(),
+              };
+
+              const tokenCount = countTokens(doc.pageContent);
+              console.log(`Token count: ${tokenCount}`);
+
+              if (tokenCount > 100) {
+                let messages = [knowledgeMessage].concat({
+                  role: "user",
+                  content:
+                    "Write a concise summary of the following and CONCISE SUMMARY, Please answer use Chinese",
+                  date: "",
+                });
+                const res = await requestChat(messages);
+                if (res) {
+                  console.log(
+                    "[Summarize] ",
+                    res?.choices?.[0]?.message?.content,
+                  );
+                  const knowledgeMessage: Message = {
+                    role: "user",
+                    content: res?.choices?.[0]?.message?.content as string,
+                    date: new Date().toLocaleString(),
+                  };
+                  sendMessages = sendMessages.concat(knowledgeMessage);
+                }
+              } else {
+                sendMessages = sendMessages.concat(knowledgeMessage);
+              }
+            }),
+          );
         }
 
         const userMessage: Message = {
