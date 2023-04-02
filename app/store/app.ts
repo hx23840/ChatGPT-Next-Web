@@ -12,10 +12,12 @@ import {
 import { trimTopic } from "../utils";
 
 import Locale from "../locales";
+import { it } from "node:test";
 
 export type Message = ChatCompletionResponseMessage & {
   date: string;
   streaming?: boolean;
+  isVisible: boolean;
 };
 
 export enum SubmitKey {
@@ -126,7 +128,7 @@ const DEFAULT_CONFIG: ChatConfig = {
   compressMessageLengthThreshold: 1000,
   sendBotMessages: true as boolean,
   submitKey: SubmitKey.CtrlEnter as SubmitKey,
-  avatar: "1f603",
+  avatar: "1f412",
   fontSize: 14,
   theme: Theme.Auto as Theme,
   tightBorder: false,
@@ -155,6 +157,7 @@ export interface ChatSession {
   stat: ChatStat;
   lastUpdate: string;
   lastSummarizeIndex: number;
+  bot_name: string;
 }
 
 const DEFAULT_TOPIC = Locale.Store.DefaultTopic;
@@ -171,6 +174,7 @@ function createEmptySession(): ChatSession {
         role: "assistant",
         content: Locale.Store.BotHello,
         date: createDate,
+        isVisible: true,
       },
     ],
     stat: {
@@ -180,6 +184,8 @@ function createEmptySession(): ChatSession {
     },
     lastUpdate: createDate,
     lastSummarizeIndex: 0,
+
+    bot_name: "",
   };
 }
 
@@ -189,7 +195,7 @@ interface ChatStore {
   currentSessionIndex: number;
   removeSession: (index: number) => void;
   selectSession: (index: number) => void;
-  newSession: () => void;
+  newSession: (bot_name: string) => void;
   currentSession: () => ChatSession;
   onNewMessage: (message: Message) => void;
   onUserInput: (content: string) => Promise<void>;
@@ -276,11 +282,37 @@ export const useChatStore = create<ChatStore>()(
         });
       },
 
-      newSession() {
+      newSession(bot_name: string) {
+        let empty_session: ChatSession = createEmptySession();
+        empty_session.bot_name = bot_name;
+
         set((state) => ({
           currentSessionIndex: 0,
-          sessions: [createEmptySession()].concat(state.sessions),
+          sessions: [empty_session].concat(state.sessions),
         }));
+
+        if (get().currentSession().bot_name.startsWith("caozbot")) {
+          empty_session.messages = [];
+          const userMessage: Message = {
+            role: "system",
+            content: Locale.Store.Prompt.Caoz,
+            date: new Date().toLocaleString(),
+            isVisible: false,
+          };
+
+          const helloMessage: Message = {
+            role: "assistant",
+            content:
+              "你好，我收集了2015年至2023年3月23日之间的微信公众号文章合计1027篇，你可以咨询相关问题！",
+            date: new Date().toLocaleString(),
+            isVisible: true,
+          };
+
+          get().updateCurrentSession((session) => {
+            session.messages.push(userMessage);
+            session.messages.push(helloMessage);
+          });
+        }
       },
 
       currentSession() {
@@ -292,9 +324,7 @@ export const useChatStore = create<ChatStore>()(
           set(() => ({ currentSessionIndex: index }));
         }
 
-        const session = sessions[index];
-
-        return session;
+        return sessions[index];
       },
 
       onNewMessage(message) {
@@ -307,56 +337,52 @@ export const useChatStore = create<ChatStore>()(
 
       async onUserInput(content) {
         // get recent messages
-        const recentMessages = get().getMessagesWithMemory();
-
+        let recentMessages = get().getMessagesWithMemory();
         let sendMessages: Message[] = [];
-        let prompt =
-          "由你扮演曹政，曹政先后从事产品、研发、数据分析、架构管理等诸多岗位，见证并参与多家创业公司走向规模化乃至上市路程，如绿盟科技、百度在线、4399网络。" +
-          "中国互联网免费统计网站系统CNZZ创始人之一，前4399首席架构师、首席信息官，江湖绰号“互联网百晓生”，互联网当之无愧的技术大牛。大家都叫他曹老师，如果发现称呼你是曹老师，就是再叫曹政。" +
-          "现任厦门易灵科技 & 新加坡 Gamesky Global PTE LTD 创始人，著有《你凭什么做好互联网》一书，用户会向你咨询相关问题，问题所需的上下文内容会一起提供，请根据上下文内容来做回答，如果在上下中没有找到相关内容，一定要回答，我不知道";
 
-        const pattern: string = "@caoz";
-        if (content.startsWith(pattern)) {
-          content = content.replace("@caoz", "");
+        if (get().currentSession().bot_name.startsWith("caozbot")) {
           let jsonString = await getKnowledge(content);
-
-          const userMessage: Message = {
-            role: "user",
-            content: prompt,
-            date: new Date().toLocaleString(),
-          };
-
-          sendMessages = sendMessages.concat(userMessage);
-
           const parsedDocuments = JSON.parse(jsonString);
+
           await Promise.all(
             parsedDocuments.map(async (doc: any) => {
-              const knowledgeMessage: Message = {
-                role: "user",
-                content: doc.pageContent,
-                date: new Date().toLocaleString(),
-              };
-
-              const tokenCount = countTokens(doc.pageContent);
-
-              if (tokenCount > 100) {
-                let messages = [knowledgeMessage].concat({
-                  role: "user",
-                  content:
-                    "Write a concise summary of the following and CONCISE SUMMARY, Please answer use Chinese",
-                  date: "",
-                });
-                const res = await requestChat(messages);
-                if (res) {
+              for (const item of recentMessages) {
+                if (!item.content.includes(doc.pageContent)) {
                   const knowledgeMessage: Message = {
                     role: "user",
-                    content: res?.choices?.[0]?.message?.content as string,
+                    content: doc.pageContent,
                     date: new Date().toLocaleString(),
+                    isVisible: false,
                   };
-                  sendMessages = sendMessages.concat(knowledgeMessage);
+
+                  const tokenCount = countTokens(doc.pageContent);
+
+                  if (tokenCount > 100) {
+                    let messages = [knowledgeMessage].concat({
+                      role: "user",
+                      content:
+                        "Write a concise summary of the following and CONCISE SUMMARY, Please answer use Chinese",
+                      date: "",
+                      isVisible: false,
+                    });
+                    const res = await requestChat(messages);
+                    if (res) {
+                      const knowledgeMessage: Message = {
+                        role: "user",
+                        content: res?.choices?.[0]?.message?.content as string,
+                        date: new Date().toLocaleString(),
+                        isVisible: false,
+                      };
+                      sendMessages = sendMessages.concat(knowledgeMessage);
+                    }
+                  } else {
+                    sendMessages = sendMessages.concat(knowledgeMessage);
+                  }
+
+                  get().updateCurrentSession((session) => {
+                    session.messages.push(knowledgeMessage);
+                  });
                 }
-              } else {
-                sendMessages = sendMessages.concat(knowledgeMessage);
               }
             }),
           );
@@ -366,6 +392,7 @@ export const useChatStore = create<ChatStore>()(
           role: "user",
           content,
           date: new Date().toLocaleString(),
+          isVisible: true,
         };
 
         const botMessage: Message = {
@@ -373,9 +400,20 @@ export const useChatStore = create<ChatStore>()(
           role: "assistant",
           date: new Date().toLocaleString(),
           streaming: true,
+          isVisible: true,
         };
 
-        sendMessages = recentMessages.concat(sendMessages).concat(userMessage);
+        const sysMessage: Message = {
+          role: "system",
+          content: Locale.Store.Prompt.Caoz,
+          date: new Date().toLocaleString(),
+          isVisible: false,
+        };
+
+        sendMessages = recentMessages
+          .concat(sendMessages)
+          .concat(userMessage)
+          .concat(sysMessage);
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
 
@@ -455,6 +493,7 @@ export const useChatStore = create<ChatStore>()(
         const session = sessions.at(sessionIndex);
         const messages = session?.messages;
         updater(messages?.at(messageIndex));
+
         set(() => ({ sessions }));
       },
 
@@ -506,6 +545,7 @@ export const useChatStore = create<ChatStore>()(
               role: "system",
               content: Locale.Store.Prompt.Summarize,
               date: "",
+              isVisible: false,
             }),
             {
               filterBot: false,

@@ -108,7 +108,7 @@ export function ChatList() {
       state.currentSessionIndex,
       state.selectSession,
       state.removeSession,
-    ]
+    ],
   );
 
   return (
@@ -117,7 +117,9 @@ export function ChatList() {
         <ChatItem
           title={item.topic}
           time={item.lastUpdate}
-          count={item.messages.length}
+          count={
+            item.messages.filter((message) => message.isVisible === true).length
+          }
           key={i}
           selected={i === selectedIndex}
           onClick={() => selectSession(i)}
@@ -202,7 +204,7 @@ export function Chat(props: {
       setPromptHints(promptStore.search(text));
     },
     100,
-    { leading: true, trailing: true }
+    { leading: true, trailing: true },
   );
 
   const onPromptSelect = (prompt: Prompt) => {
@@ -216,7 +218,7 @@ export function Chat(props: {
     if (!dom) return;
     const paddingBottomNum: number = parseInt(
       window.getComputedStyle(dom).paddingBottom,
-      10
+      10,
     );
     dom.scrollTop = dom.scrollHeight - dom.offsetHeight + paddingBottomNum;
   };
@@ -302,9 +304,10 @@ export function Chat(props: {
               content: "……",
               date: new Date().toLocaleString(),
               preview: true,
+              isVisible: true,
             },
           ]
-        : []
+        : [],
     )
     .concat(
       userInput.length > 0
@@ -314,9 +317,10 @@ export function Chat(props: {
               content: userInput,
               date: new Date().toLocaleString(),
               preview: true,
+              isVisible: true,
             },
           ]
-        : []
+        : [],
     );
 
   // auto scroll
@@ -354,7 +358,7 @@ export function Chat(props: {
               const newTopic = prompt(Locale.Chat.Rename, session.topic);
               if (newTopic && newTopic !== session.topic) {
                 chatStore.updateCurrentSession(
-                  (session) => (session.topic = newTopic!)
+                  (session) => (session.topic = newTopic!),
                 );
               }
             }}
@@ -362,7 +366,9 @@ export function Chat(props: {
             {session.topic}
           </div>
           <div className={styles["window-header-sub-title"]}>
-            {Locale.Chat.SubTitle(session.messages.length)}
+            {Locale.Chat.SubTitle(
+              session.messages.filter((message) => message.isVisible).length,
+            )}
           </div>
         </div>
         <div className={styles["window-actions"]}>
@@ -399,79 +405,81 @@ export function Chat(props: {
 
       <div className={styles["chat-body"]}>
         {messages.map((message, i) => {
-          const isUser = message.role === "user";
+          if (message.isVisible) {
+            const isUser = message.role === "user";
 
-          return (
-            <div
-              key={i}
-              className={
-                isUser ? styles["chat-message-user"] : styles["chat-message"]
-              }
-            >
-              <div className={styles["chat-message-container"]}>
-                <div className={styles["chat-message-avatar"]}>
-                  <Avatar role={message.role} />
-                </div>
-                {(message.preview || message.streaming) && (
-                  <div className={styles["chat-message-status"]}>
-                    {Locale.Chat.Typing}
+            return (
+              <div
+                key={i}
+                className={
+                  isUser ? styles["chat-message-user"] : styles["chat-message"]
+                }
+              >
+                <div className={styles["chat-message-container"]}>
+                  <div className={styles["chat-message-avatar"]}>
+                    <Avatar role={message.role} />
                   </div>
-                )}
-                <div className={styles["chat-message-item"]}>
-                  {!isUser &&
-                    !(message.preview || message.content.length === 0) && (
-                      <div className={styles["chat-message-top-actions"]}>
-                        {message.streaming ? (
-                          <div
-                            className={styles["chat-message-top-action"]}
-                            onClick={() => onUserStop(i)}
-                          >
-                            {Locale.Chat.Actions.Stop}
-                          </div>
-                        ) : (
-                          <div
-                            className={styles["chat-message-top-action"]}
-                            onClick={() => onResend(i)}
-                          >
-                            {Locale.Chat.Actions.Retry}
-                          </div>
-                        )}
+                  {(message.preview || message.streaming) && (
+                    <div className={styles["chat-message-status"]}>
+                      {Locale.Chat.Typing}
+                    </div>
+                  )}
+                  <div className={styles["chat-message-item"]}>
+                    {!isUser &&
+                      !(message.preview || message.content.length === 0) && (
+                        <div className={styles["chat-message-top-actions"]}>
+                          {message.streaming ? (
+                            <div
+                              className={styles["chat-message-top-action"]}
+                              onClick={() => onUserStop(i)}
+                            >
+                              {Locale.Chat.Actions.Stop}
+                            </div>
+                          ) : (
+                            <div
+                              className={styles["chat-message-top-action"]}
+                              onClick={() => onResend(i)}
+                            >
+                              {Locale.Chat.Actions.Retry}
+                            </div>
+                          )}
 
-                        <div
-                          className={styles["chat-message-top-action"]}
-                          onClick={() => copyToClipboard(message.content)}
-                        >
-                          {Locale.Chat.Actions.Copy}
+                          <div
+                            className={styles["chat-message-top-action"]}
+                            onClick={() => copyToClipboard(message.content)}
+                          >
+                            {Locale.Chat.Actions.Copy}
+                          </div>
                         </div>
+                      )}
+                    {(message.preview || message.content.length === 0) &&
+                    !isUser ? (
+                      <LoadingIcon />
+                    ) : (
+                      <div
+                        className="markdown-body"
+                        style={{ fontSize: `${fontSize}px` }}
+                        onContextMenu={(e) => onRightClick(e, message)}
+                        onDoubleClickCapture={() => {
+                          if (!isMobileScreen()) return;
+                          setUserInput(message.content);
+                        }}
+                      >
+                        <Markdown content={message.content} />
                       </div>
                     )}
-                  {(message.preview || message.content.length === 0) &&
-                  !isUser ? (
-                    <LoadingIcon />
-                  ) : (
-                    <div
-                      className="markdown-body"
-                      style={{ fontSize: `${fontSize}px` }}
-                      onContextMenu={(e) => onRightClick(e, message)}
-                      onDoubleClickCapture={() => {
-                        if (!isMobileScreen()) return;
-                        setUserInput(message.content);
-                      }}
-                    >
-                      <Markdown content={message.content} />
+                  </div>
+                  {!isUser && !message.preview && (
+                    <div className={styles["chat-message-actions"]}>
+                      <div className={styles["chat-message-action-date"]}>
+                        {message.date.toLocaleString()}
+                      </div>
                     </div>
                   )}
                 </div>
-                {!isUser && !message.preview && (
-                  <div className={styles["chat-message-actions"]}>
-                    <div className={styles["chat-message-action-date"]}>
-                      {message.date.toLocaleString()}
-                    </div>
-                  </div>
-                )}
               </div>
-            </div>
-          );
+            );
+          }
         })}
         <div ref={latestMessageRef} style={{ opacity: 0, height: "1px" }}>
           -
@@ -567,7 +575,9 @@ function exportMessages(messages: Message[], topic: string) {
 
 function showMemoryPrompt(session: ChatSession) {
   showModal({
-    title: `${Locale.Memory.Title} (${session.lastSummarizeIndex} of ${session.messages.length})`,
+    title: `${Locale.Memory.Title} (${session.lastSummarizeIndex} of ${
+      session.messages.filter((message) => message.isVisible).length
+    })`,
     children: (
       <div className="markdown-body">
         <pre className={styles["export-content"]}>
@@ -603,7 +613,7 @@ export function Home() {
       state.newSession,
       state.currentSessionIndex,
       state.removeSession,
-    ]
+    ],
   );
   const loading = !useHasHydrated();
   const [showSideBar, setShowSideBar] = useState(true);
@@ -670,18 +680,28 @@ export function Home() {
                 }}
               />
             </div>
-            <div className={styles["sidebar-action"]}>
-              <a href={REPO_URL} target="_blank">
-                <IconButton icon={<GithubIcon />} />
-              </a>
-            </div>
+            {/*<div className={styles["sidebar-action"]}>*/}
+            {/*    <a href={REPO_URL} target="_blank">*/}
+            {/*        <IconButton icon={<GithubIcon/>}/>*/}
+            {/*    </a>*/}
+            {/*</div>*/}
           </div>
           <div>
             <IconButton
               icon={<AddIcon />}
               text={Locale.Home.NewChat}
               onClick={() => {
-                createNewSession();
+                createNewSession("");
+                setShowSideBar(false);
+              }}
+            />
+          </div>
+          <div>
+            <IconButton
+              icon={<AddIcon />}
+              text={Locale.Home.NewCaozChat}
+              onClick={() => {
+                createNewSession("caozbot");
                 setShowSideBar(false);
               }}
             />

@@ -43,6 +43,7 @@ const es: LocaleType = {
   },
   Home: {
     NewChat: "Nuevo chat",
+    NewCaozChat: "Talk to Cao",
     DeleteChat: "¿Confirmar eliminación de la conversación seleccionada?",
   },
   Settings: {
@@ -142,12 +143,18 @@ const es: LocaleType = {
         "Por favor, genera un título de cuatro a cinco palabras que resuma nuestra conversación sin ningún inicio, puntuación, comillas, puntos, símbolos o texto adicional. Elimina las comillas que lo envuelven.",
       Summarize:
         "Resuma nuestra discusión brevemente en 50 caracteres o menos para usarlo como un recordatorio para futuros contextos.",
+      Caoz:
+        "由你扮演曹政，曹政先后从事产品、研发、数据分析、架构管理等诸多岗位，见证并参与多家创业公司走向规模化乃至上市路程，如绿盟科技、百度在线、4399网络。" +
+        "中国互联网免费统计网站系统CNZZ创始人之一，前4399首席架构师、首席信息官，江湖绰号“互联网百晓生”，互联网当之无愧的技术大牛。大家都叫他曹老师，曹大，如果发现称呼你是曹老师，曹大，都是在叫曹政。" +
+        "现任厦门易灵科技 & 新加坡 Gamesky Global PTE LTD 创始人，著有《你凭什么做好互联网》一书，用户会向你咨询相关问题，问题所需的上下文内容会一起提供，请根据上下文内容来做回答，如果在上下中没有找到相关内容，一定要回答，我不知道",
     },
-    ConfirmClearAll: "¿Confirmar para borrar todos los datos de chat y configuración?",
+    ConfirmClearAll:
+      "¿Confirmar para borrar todos los datos de chat y configuración?",
   },
   Copy: {
     Success: "Copiado al portapapeles",
-    Failed: "La copia falló, por favor concede permiso para acceder al portapapeles",
+    Failed:
+      "La copia falló, por favor concede permiso para acceder al portapapeles",
   },
 };
 

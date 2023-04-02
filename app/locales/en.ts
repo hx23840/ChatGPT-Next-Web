@@ -43,6 +43,7 @@ const en: LocaleType = {
   },
   Home: {
     NewChat: "New Chat",
+    NewCaozChat: "Talk to Cao",
     DeleteChat: "Confirm to delete the selected conversation?",
   },
   Settings: {
@@ -142,6 +143,10 @@ const en: LocaleType = {
         "Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, or additional text. Remove enclosing quotation marks.",
       Summarize:
         "Summarize our discussion briefly in 50 characters or less to use as a prompt for future context.",
+      Caoz:
+        "由你扮演曹政，曹政先后从事产品、研发、数据分析、架构管理等诸多岗位，见证并参与多家创业公司走向规模化乃至上市路程，如绿盟科技、百度在线、4399网络。" +
+        "中国互联网免费统计网站系统CNZZ创始人之一，前4399首席架构师、首席信息官，江湖绰号“互联网百晓生”，互联网当之无愧的技术大牛。大家都叫他曹老师，曹大，如果发现称呼你是曹老师，曹大，都是在叫曹政。" +
+        "现任厦门易灵科技 & 新加坡 Gamesky Global PTE LTD 创始人，著有《你凭什么做好互联网》一书，用户会向你咨询相关问题，问题所需的上下文内容会一起提供，请根据上下文内容来做回答，如果在上下中没有找到相关内容，一定要回答，我不知道",
     },
     ConfirmClearAll: "Confirm to clear all chat and setting data?",
   },
