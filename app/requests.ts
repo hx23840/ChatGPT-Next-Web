@@ -178,6 +178,7 @@ export async function requestWithPrompt(messages: Message[], prompt: string) {
       role: "user",
       content: prompt,
       date: new Date().toLocaleString(),
+      isVisible: true,
     },
   ]);
 
