@@ -13,6 +13,7 @@ import { trimTopic } from "../utils";
 
 import Locale from "../locales";
 import { it } from "node:test";
+import locales from "../locales";
 
 export type Message = ChatCompletionResponseMessage & {
   date: string;
@@ -226,6 +227,14 @@ function countTokens(text: string): number {
   return tokens.length;
 }
 
+// 检查knowledgeMessage是否在recentMessages中的函数
+function isMessageInRecentMessages(
+  recentMessages: Message[],
+  pageContent: string,
+): boolean {
+  return recentMessages.some((item) => item.content.includes(pageContent));
+}
+
 const LOCAL_KEY = "chat-next-web-store";
 
 export const useChatStore = create<ChatStore>()(
@@ -293,13 +302,7 @@ export const useChatStore = create<ChatStore>()(
 
         if (get().currentSession().bot_name.startsWith("caozbot")) {
           empty_session.messages = [];
-          const userMessage: Message = {
-            role: "system",
-            content: Locale.Store.Prompt.Caoz,
-            date: new Date().toLocaleString(),
-            isVisible: false,
-          };
-
+          empty_session.topic = locales.Home.NewCaozChat;
           const helloMessage: Message = {
             role: "assistant",
             content:
@@ -309,7 +312,6 @@ export const useChatStore = create<ChatStore>()(
           };
 
           get().updateCurrentSession((session) => {
-            session.messages.push(userMessage);
             session.messages.push(helloMessage);
           });
         }
@@ -344,49 +346,51 @@ export const useChatStore = create<ChatStore>()(
           let jsonString = await getKnowledge(content);
           const parsedDocuments = JSON.parse(jsonString);
 
+          console.log(parsedDocuments);
+
           await Promise.all(
             parsedDocuments.map(async (doc: any) => {
-              for (const item of recentMessages) {
-                if (!item.content.includes(doc.pageContent)) {
-                  const knowledgeMessage: Message = {
+              if (!isMessageInRecentMessages(recentMessages, doc.pageContent)) {
+                const knowledgeMessage: Message = {
+                  role: "user",
+                  content: doc.pageContent,
+                  date: new Date().toLocaleString(),
+                  isVisible: false,
+                };
+
+                const tokenCount = countTokens(doc.pageContent);
+
+                if (tokenCount > 100) {
+                  let messages = [knowledgeMessage].concat({
                     role: "user",
-                    content: doc.pageContent,
-                    date: new Date().toLocaleString(),
+                    content:
+                      "Write a concise summary of the following and CONCISE SUMMARY, Please answer use Chinese",
+                    date: "",
                     isVisible: false,
-                  };
-
-                  const tokenCount = countTokens(doc.pageContent);
-
-                  if (tokenCount > 100) {
-                    let messages = [knowledgeMessage].concat({
+                  });
+                  const res = await requestChat(messages);
+                  if (res) {
+                    const knowledgeMessage: Message = {
                       role: "user",
-                      content:
-                        "Write a concise summary of the following and CONCISE SUMMARY, Please answer use Chinese",
-                      date: "",
+                      content: res?.choices?.[0]?.message?.content as string,
+                      date: new Date().toLocaleString(),
                       isVisible: false,
-                    });
-                    const res = await requestChat(messages);
-                    if (res) {
-                      const knowledgeMessage: Message = {
-                        role: "user",
-                        content: res?.choices?.[0]?.message?.content as string,
-                        date: new Date().toLocaleString(),
-                        isVisible: false,
-                      };
-                      sendMessages = sendMessages.concat(knowledgeMessage);
-                    }
-                  } else {
+                    };
                     sendMessages = sendMessages.concat(knowledgeMessage);
                   }
-
-                  get().updateCurrentSession((session) => {
-                    session.messages.push(knowledgeMessage);
-                  });
+                } else {
+                  sendMessages = sendMessages.concat(knowledgeMessage);
                 }
+
+                get().updateCurrentSession((session) => {
+                  session.messages.push(knowledgeMessage);
+                });
               }
             }),
           );
         }
+
+        console.log(sendMessages);
 
         const userMessage: Message = {
           role: "user",
