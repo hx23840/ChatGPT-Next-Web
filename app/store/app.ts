@@ -346,8 +346,6 @@ export const useChatStore = create<ChatStore>()(
           let jsonString = await getKnowledge(content);
           const parsedDocuments = JSON.parse(jsonString);
 
-          console.log(parsedDocuments);
-
           await Promise.all(
             parsedDocuments.map(async (doc: any) => {
               if (!isMessageInRecentMessages(recentMessages, doc.pageContent)) {
@@ -389,8 +387,6 @@ export const useChatStore = create<ChatStore>()(
             }),
           );
         }
-
-        console.log(sendMessages);
 
         const userMessage: Message = {
           role: "user",
