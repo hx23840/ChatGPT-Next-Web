@@ -12,14 +12,7 @@ import BotIcon from "../icons/bot.svg";
 import AddIcon from "../icons/add.svg";
 import DeleteIcon from "../icons/delete.svg";
 
-import {
-  Message,
-  SubmitKey,
-  useChatStore,
-  ChatSession,
-  BOT_HELLO,
-  ROLES,
-} from "../store";
+import { Message, SubmitKey, useChatStore, BOT_HELLO, ROLES } from "../store";
 
 import {
   copyToClipboard,
@@ -378,7 +371,8 @@ export function Chat(props: {
     chatStore.onUserInput(userInput).then(() => setIsLoading(false));
     setUserInput("");
     setPromptHints([]);
-    inputRef.current?.focus();
+    if (!isMobileScreen()) inputRef.current?.focus();
+    setAutoScroll(true);
   };
 
   // stop response
@@ -465,6 +459,7 @@ export function Chat(props: {
 
   // Auto focus
   useEffect(() => {
+    if (props.sideBarShowing && isMobileScreen()) return;
     inputRef.current?.focus();
   }, []);
 
@@ -519,7 +514,10 @@ export function Chat(props: {
               bordered
               title={Locale.Chat.Actions.Export}
               onClick={() => {
-                exportMessages(session.messages, session.topic);
+                exportMessages(
+                  session.messages.filter((msg) => !msg.isError),
+                  session.topic,
+                );
               }}
             />
           </div>
@@ -536,8 +534,11 @@ export function Chat(props: {
         className={styles["chat-body"]}
         ref={scrollRef}
         onScroll={(e) => onChatBodyScroll(e.currentTarget)}
-        onMouseOver={() => inputRef.current?.blur()}
-        onTouchStart={() => inputRef.current?.blur()}
+        onWheel={(e) => setAutoScroll(hitBottom && e.deltaY > 0)}
+        onTouchStart={() => {
+          inputRef.current?.blur();
+          setAutoScroll(false);
+        }}
       >
         {messages.map((message, i) => {
           const isUser = message.role === "user";
