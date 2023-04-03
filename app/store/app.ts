@@ -348,12 +348,6 @@ export const useChatStore = create<ChatStore>()(
         // get recent messages
         let recentMessages = get().getMessagesWithMemory();
         let sendMessages: Message[] = [];
-        let sysMessage: Message = {
-          role: "system",
-          content: "",
-          date: new Date().toLocaleString(),
-          isVisible: false,
-        };
 
         const userMessage: Message = {
           role: "user",
@@ -362,18 +356,39 @@ export const useChatStore = create<ChatStore>()(
           isVisible: true,
         };
 
-        // save user's and bot's message
-        get().updateCurrentSession((session) => {
-          session.messages.push(userMessage);
-        });
+        const botMessage: Message = {
+          content: "",
+          role: "assistant",
+          date: new Date().toLocaleString(),
+          streaming: true,
+          isVisible: true,
+        };
 
         if (get().currentSession().bot_name.startsWith("caozbot")) {
           let jsonString = await getKnowledge(content);
           const parsedDocuments = JSON.parse(jsonString);
 
-          sysMessage = {
+          let sysPromptMessage: Message = {
             role: "system",
             content: Locale.Store.Prompt.Caoz,
+            date: new Date().toLocaleString(),
+            isVisible: false,
+          };
+
+          let assistantPromptMessage: Message = {
+            role: "assistant",
+            content:
+              "请提供一个问题和相关参考内容，以帮助我更好地回答您的问题。",
+            date: new Date().toLocaleString(),
+            isVisible: false,
+          };
+
+          let userPromptMessage: Message = {
+            role: "user",
+            content:
+              "请使用以下内容回答所提供的问题。如果该内容不相关，请指出未找到任何信息。\n" +
+              "您的任务是阅读并理解给定的内容以回答特定问题。该内容可能包含任何主题的信息，因此在尝试回答问题之前仔细阅读并理解其内容非常重要，必要时使用内容中的详细信息。\n" +
+              "请注意，如果该内容不包含任何相关信息，则应声明未找到任何信息。",
             date: new Date().toLocaleString(),
             isVisible: false,
           };
@@ -390,13 +405,14 @@ export const useChatStore = create<ChatStore>()(
 
                 const tokenCount = countMessages([knowledgeMessage]);
                 if (tokenCount > 100) {
-                  let messages = [knowledgeMessage].concat({
+                  let summaryMessage: Message = {
                     role: "user",
                     content:
                       "Write a concise summary of the following and CONCISE SUMMARY, Control within 100 characters, Please answer use Chinese",
                     date: "",
                     isVisible: false,
-                  });
+                  };
+                  let messages = [summaryMessage].concat(knowledgeMessage);
                   const res = await requestChat(messages);
                   if (res) {
                     const knowledgeMessage: Message = {
@@ -417,25 +433,25 @@ export const useChatStore = create<ChatStore>()(
               }
             }),
           );
-        }
 
-        const botMessage: Message = {
-          content: "",
-          role: "assistant",
-          date: new Date().toLocaleString(),
-          streaming: true,
-          isVisible: true,
-        };
+          sendMessages = recentMessages
+            .concat([sysPromptMessage])
+            .concat([assistantPromptMessage])
+            .concat(userMessage)
+            .concat([userPromptMessage])
+            .concat(sendMessages);
+        } else {
+          sendMessages = recentMessages
+            .concat(sendMessages)
+            .concat(userMessage);
+        }
 
         // save user's and bot's message
         get().updateCurrentSession((session) => {
+          session.messages.push(userMessage);
           session.messages.push(botMessage);
         });
 
-        sendMessages = recentMessages
-          .concat(sendMessages)
-          .concat(userMessage)
-          .concat(sysMessage);
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
 
