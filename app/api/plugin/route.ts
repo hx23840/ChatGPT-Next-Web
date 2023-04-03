@@ -10,7 +10,7 @@ async function handler(req: NextRequest) {
     auth: {
       bearer: bearer,
     },
-    topK: 2,
+    topK: 1,
   });
 
   if (query != null) {

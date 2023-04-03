@@ -134,7 +134,6 @@ export async function requestChatStream(
   }
 
   console.log("[Request] ", req);
-
   const controller = new AbortController();
   const reqTimeoutId = setTimeout(() => controller.abort(), TIME_OUT_MS);
 

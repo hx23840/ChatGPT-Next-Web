@@ -107,7 +107,7 @@ export function filterConfig(oldConfig: ModelConfig): Partial<ModelConfig> {
       return isValidModel(x as string);
     },
     max_tokens(x) {
-      return isValidNumber(x as number, 100, 4000);
+      return isValidNumber(x as number, 100, 2000);
     },
     presence_penalty(x) {
       return isValidNumber(x as number, -2, 2);
@@ -143,7 +143,7 @@ const DEFAULT_CONFIG: ChatConfig = {
   modelConfig: {
     model: "gpt-3.5-turbo",
     temperature: 1,
-    max_tokens: 2000,
+    max_tokens: 1000,
     presence_penalty: 0,
   },
 };
@@ -225,12 +225,6 @@ interface ChatStore {
 
 function countMessages(msgs: Message[]) {
   return msgs.reduce((pre, cur) => pre + cur.content.length, 0);
-}
-
-function countTokens(text: string): number {
-  const tokenPattern = /([\p{L}\p{N}]+)|\s+|(.)\p{Zs}*/gu;
-  const tokens = Array.from(text.matchAll(tokenPattern));
-  return tokens.length;
 }
 
 // 检查knowledgeMessage是否在recentMessages中的函数
@@ -354,10 +348,23 @@ export const useChatStore = create<ChatStore>()(
         // get recent messages
         let recentMessages = get().getMessagesWithMemory();
         let sendMessages: Message[] = [];
+        let sysMessage: Message = {
+          role: "system",
+          content: "",
+          date: new Date().toLocaleString(),
+          isVisible: false,
+        };
 
         if (get().currentSession().bot_name.startsWith("caozbot")) {
           let jsonString = await getKnowledge(content);
           const parsedDocuments = JSON.parse(jsonString);
+
+          sysMessage = {
+            role: "system",
+            content: Locale.Store.Prompt.Caoz,
+            date: new Date().toLocaleString(),
+            isVisible: false,
+          };
 
           await Promise.all(
             parsedDocuments.map(async (doc: any) => {
@@ -369,14 +376,12 @@ export const useChatStore = create<ChatStore>()(
                   isVisible: false,
                 };
 
-                const tokenCount = countTokens(doc.pageContent);
-                console.log(tokenCount);
-
+                const tokenCount = countMessages([knowledgeMessage]);
                 if (tokenCount > 100) {
                   let messages = [knowledgeMessage].concat({
                     role: "user",
                     content:
-                      "Write a concise summary of the following and CONCISE SUMMARY, Please answer use Chinese",
+                      "Write a concise summary of the following and CONCISE SUMMARY, Control within 100 characters, Please answer use Chinese",
                     date: "",
                     isVisible: false,
                   });
@@ -417,13 +422,6 @@ export const useChatStore = create<ChatStore>()(
           isVisible: true,
         };
 
-        const sysMessage: Message = {
-          role: "system",
-          content: Locale.Store.Prompt.Caoz,
-          date: new Date().toLocaleString(),
-          isVisible: false,
-        };
-
         sendMessages = recentMessages
           .concat(sendMessages)
           .concat(userMessage)
@@ -438,6 +436,7 @@ export const useChatStore = create<ChatStore>()(
         });
 
         // make request
+        console.log("[User Input Length] ", countMessages(sendMessages));
         console.log("[User Input] ", sendMessages);
         requestChatStream(sendMessages, {
           onMessage(content, done) {
@@ -537,7 +536,7 @@ export const useChatStore = create<ChatStore>()(
 
         const historyMsgLength = countMessages(toBeSummarizedMsgs);
 
-        if (historyMsgLength > get().config?.modelConfig?.max_tokens ?? 4000) {
+        if (historyMsgLength > get().config?.modelConfig?.max_tokens ?? 2000) {
           const n = toBeSummarizedMsgs.length;
           toBeSummarizedMsgs = toBeSummarizedMsgs.slice(
             Math.max(0, n - config.historyMessageCount),
