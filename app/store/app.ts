@@ -367,7 +367,6 @@ export const useChatStore = create<ChatStore>()(
         // save user's and bot's message
         get().updateCurrentSession((session) => {
           session.messages.push(userMessage);
-          session.messages.push(botMessage);
         });
 
         if (get().currentSession().bot_name.startsWith("caozbot")) {
@@ -480,6 +479,12 @@ export const useChatStore = create<ChatStore>()(
           );
         }
 
+        get().updateCurrentSession((session) => {
+          session.messages.push(botMessage);
+        });
+
+        botMessage.date = new Date().toLocaleString();
+
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
 
@@ -492,17 +497,18 @@ export const useChatStore = create<ChatStore>()(
             if (done) {
               botMessage.streaming = false;
               botMessage.content = content;
-              get().onNewMessage(botMessage);
+              (botMessage.date = new Date().toLocaleString()),
+                get().onNewMessage(botMessage);
               ControllerPool.remove(sessionIndex, messageIndex);
             } else {
               botMessage.content = content;
-              set(() => ({}));
+              (botMessage.date = new Date().toLocaleString()), set(() => ({}));
             }
           },
           onError(error) {
             botMessage.content += "\n\n" + Locale.Store.Error;
             botMessage.streaming = false;
-            set(() => ({}));
+            (botMessage.date = new Date().toLocaleString()), set(() => ({}));
             ControllerPool.remove(sessionIndex, messageIndex);
           },
           onController(controller) {
