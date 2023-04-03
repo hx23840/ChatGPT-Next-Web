@@ -35,7 +35,7 @@ const cn = {
     Download: "下载文件",
   },
   Memory: {
-    Title: "上下文记忆 Prompt",
+    Title: "历史记忆",
     EmptyContent: "尚未记忆",
     Copy: "全部复制",
   },
@@ -78,6 +78,7 @@ const cn = {
     SendKey: "发送键",
     Theme: "主题",
     TightBorder: "紧凑边框",
+    SendPreviewBubble: "发送预览气泡",
     Prompt: {
       Disable: {
         Title: "禁用提示词自动补全",
@@ -103,8 +104,8 @@ const cn = {
     },
     Usage: {
       Title: "账户余额",
-      SubTitle(granted: any, used: any) {
-        return `总共 $${granted}，已使用 $${used}`;
+      SubTitle(used: any) {
+        return `本月已使用 $${used}`;
       },
       IsChecking: "正在检查…",
       Check: "重新检查",
@@ -138,7 +139,7 @@ const cn = {
       Topic:
         "使用四到五个字直接返回这句话的简要主题，不要解释、不要标点、不要语气词、不要多余文本，如果没有主题，请直接返回“闲聊”",
       Summarize:
-        "简要总结一下你和用户的对话，用作后续的上下文提示 prompt，控制在 50 字以内",
+        "简要总结一下你和用户的对话，用作后续的上下文提示 prompt，控制在 200 字以内",
       Caoz:
         "由你扮演曹政，曹政先后从事产品、研发、数据分析、架构管理等诸多岗位，见证并参与多家创业公司走向规模化乃至上市路程，如绿盟科技、百度在线、4399网络。" +
         "中国互联网免费统计网站系统CNZZ创始人之一，前4399首席架构师、首席信息官，江湖绰号“互联网百晓生”，互联网当之无愧的技术大牛。大家都叫他曹老师，曹大，如果发现称呼你是曹老师，曹大，都是在叫曹政。" +
@@ -149,6 +150,11 @@ const cn = {
   Copy: {
     Success: "已写入剪切板",
     Failed: "复制失败，请赋予剪切板权限",
+  },
+  Context: {
+    Toast: (x: any) => `已设置 ${x} 条前置上下文`,
+    Edit: "前置上下文和历史记忆",
+    Add: "新增一条",
   },
 };
 

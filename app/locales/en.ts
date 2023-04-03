@@ -55,7 +55,7 @@ const en: LocaleType = {
       Close: "Close",
     },
     Lang: {
-      Name: "Language",
+      Name: "Language", // ATTENTION: if you wanna add a new translation, please do not translate this value, leave it as `Language`
       Options: {
         cn: "简体中文",
         en: "English",
@@ -79,6 +79,7 @@ const en: LocaleType = {
     SendKey: "Send Key",
     Theme: "Theme",
     TightBorder: "Tight Border",
+    SendPreviewBubble: "Send Preview Bubble",
     Prompt: {
       Disable: {
         Title: "Disable auto-completion",
@@ -105,8 +106,8 @@ const en: LocaleType = {
     },
     Usage: {
       Title: "Account Balance",
-      SubTitle(granted: any, used: any) {
-        return `Total $${granted}, Used $${used}`;
+      SubTitle(used: any) {
+        return `Used this month $${used}`;
       },
       IsChecking: "Checking...",
       Check: "Check Again",
@@ -142,7 +143,7 @@ const en: LocaleType = {
       Topic:
         "Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, or additional text. Remove enclosing quotation marks.",
       Summarize:
-        "Summarize our discussion briefly in 50 characters or less to use as a prompt for future context.",
+        "Summarize our discussion briefly in 200 words or less to use as a prompt for future context.",
       Caoz:
         "由你扮演曹政，曹政先后从事产品、研发、数据分析、架构管理等诸多岗位，见证并参与多家创业公司走向规模化乃至上市路程，如绿盟科技、百度在线、4399网络。" +
         "中国互联网免费统计网站系统CNZZ创始人之一，前4399首席架构师、首席信息官，江湖绰号“互联网百晓生”，互联网当之无愧的技术大牛。大家都叫他曹老师，曹大，如果发现称呼你是曹老师，曹大，都是在叫曹政。" +
@@ -153,6 +154,11 @@ const en: LocaleType = {
   Copy: {
     Success: "Copied to clipboard",
     Failed: "Copy failed, please grant permission to access clipboard",
+  },
+  Context: {
+    Toast: (x: any) => `With ${x} contextual prompts`,
+    Edit: "Contextual and Memory Prompts",
+    Add: "Add One",
   },
 };
 
