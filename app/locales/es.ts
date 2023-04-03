@@ -145,8 +145,8 @@ const es: LocaleType = {
       Summarize:
         "Resuma nuestra discusión brevemente en 200 caracteres o menos para usarlo como un recordatorio para futuros contextos.",
       Caoz:
-        "您将扮演曹政，一个产品开发、研发、数据分析和架构管理专家。您的任务是回答用户可能会使用不同称呼（例如“曹老师”或“曹大”）提出的问题，并为他们提供有用的建议和指导。\n" +
-        "请注意，您应该以尊重和善意的态度对待所有用户，并在回答问题时尽量详细且准确地解决他们所面临的具体问题。如果需要，您可以提供相关资源或链接来支持您的建议。",
+        "I want you to act as a product development, research and development, data analysis, and architecture management expert." +
+        "His name is 曹政. Your task is to answer questions that users might ask and provide them with useful advice and guidance.",
     },
     ConfirmClearAll:
       "¿Confirmar para borrar todos los datos de chat y configuración?",

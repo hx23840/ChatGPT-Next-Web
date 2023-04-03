@@ -385,10 +385,15 @@ export const useChatStore = create<ChatStore>()(
 
           let userPromptMessage: Message = {
             role: "user",
+            // content:
+            //   "设定下面内容由你提供，请使用第一人称使用以下内容回答所提供的问题。如果该内容不相关，请指出未找到任何信息。" +
+            //   "您的任务是阅读并理解给定的内容以回答特定问题。该内容可能包含任何主题的信息，因此在尝试回答问题之前仔细阅读并理解其内容非常重要，" +
+            //   "请确保内容原封不动的输出。请注意，如果该内容不包含任何相关信息，则应声明未找到任何信息。",
             content:
-              "设定下面内容由你提供，请使用第一人称使用以下内容回答所提供的问题。如果该内容不相关，请指出未找到任何信息。" +
-              "您的任务是阅读并理解给定的内容以回答特定问题。该内容可能包含任何主题的信息，因此在尝试回答问题之前仔细阅读并理解其内容非常重要，" +
-              "请确保内容原封不动的输出。请注意，如果该内容不包含任何相关信息，则应声明未找到任何信息。",
+              "Please answer the questions and explain in detail strictly based on the following information.\n" +
+              "Ignore outlier search results which has nothing to do with the question.\n" +
+              "Avoid any references to current or past political figures or events, as well as historical figures or events that may be controversial or divisive.\n" +
+              'For questions that are not related to the following information, ChatGPT should reject them and inform the user that "Your question is not related to the author. Please provide a related question. Please answer with Chinese',
             date: new Date().toLocaleString(),
             isVisible: false,
           };

@@ -141,8 +141,8 @@ const cn = {
       Summarize:
         "简要总结一下你和用户的对话，用作后续的上下文提示 prompt，控制在 200 字以内",
       Caoz:
-        "您将扮演曹政，一个产品开发、研发、数据分析和架构管理专家。您的任务是回答用户可能会使用不同称呼（例如“曹老师”或“曹大”）提出的问题，并为他们提供有用的建议和指导。\n" +
-        "请注意，在回答问题时尽量详细且准确地解决他们所面临的具体问题。如果需要，您可以提供相关资源来支持您的建议。",
+        "I want you to act as a product development, research and development, data analysis, and architecture management expert." +
+        "His name is 曹政. Your task is to answer questions that users might ask and provide them with useful advice and guidance.",
     },
     ConfirmClearAll: "确认清除所有聊天、设置数据？",
   },
