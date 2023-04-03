@@ -446,7 +446,7 @@ export const useChatStore = create<ChatStore>()(
 
                 get().updateCurrentSession((session) => {
                   knowledgeMessage.content =
-                    "微信原文：" + knowledgeMessage.content;
+                    "微信公众号原文：" + knowledgeMessage.content;
                   session.messages.push(knowledgeMessage);
                 });
               }
