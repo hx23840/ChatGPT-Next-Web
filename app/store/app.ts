@@ -364,6 +364,12 @@ export const useChatStore = create<ChatStore>()(
           isVisible: true,
         };
 
+        // save user's and bot's message
+        get().updateCurrentSession((session) => {
+          session.messages.push(userMessage);
+          session.messages.push(botMessage);
+        });
+
         if (get().currentSession().bot_name.startsWith("caozbot")) {
           let jsonString = await getKnowledge(content);
           const parsedDocuments = JSON.parse(jsonString);
@@ -393,19 +399,21 @@ export const useChatStore = create<ChatStore>()(
               "Please answer the questions and explain in detail strictly based on the following information.\n" +
               "Ignore outlier search results which has nothing to do with the question.\n" +
               "Avoid any references to current or past political figures or events, as well as historical figures or events that may be controversial or divisive.\n" +
-              'For questions that are not related to the following information, ChatGPT should reject them and inform the user that "Your question is not related to the author. Please provide a related question. Please answer with Chinese',
+              'For questions that are not related to the following information, ChatGPT should reject them and inform the user that "Your question is not related to the author.' +
+              "Please provide a related question. Please answer with Chinese",
             date: new Date().toLocaleString(),
             isVisible: false,
           };
 
           await Promise.all(
             parsedDocuments.map(async (doc: any) => {
+              console.log(doc);
               if (!isMessageInRecentMessages(recentMessages, doc.pageContent)) {
                 const knowledgeMessage: Message = {
                   role: "assistant",
                   content: doc.pageContent,
                   date: new Date().toLocaleString(),
-                  isVisible: false,
+                  isVisible: true,
                 };
 
                 const tokenCount = countMessages([knowledgeMessage]);
@@ -428,7 +436,7 @@ export const useChatStore = create<ChatStore>()(
                       role: "assistant",
                       content: res?.choices?.[0]?.message?.content as string,
                       date: new Date().toLocaleString(),
-                      isVisible: false,
+                      isVisible: true,
                     };
                     sendMessages = sendMessages.concat(knowledgeMessage);
                   }
@@ -437,6 +445,8 @@ export const useChatStore = create<ChatStore>()(
                 }
 
                 get().updateCurrentSession((session) => {
+                  knowledgeMessage.content =
+                    "微信原文：" + knowledgeMessage.content;
                   session.messages.push(knowledgeMessage);
                 });
               }
@@ -454,12 +464,6 @@ export const useChatStore = create<ChatStore>()(
             .concat(sendMessages)
             .concat(userMessage);
         }
-
-        // save user's and bot's message
-        get().updateCurrentSession((session) => {
-          session.messages.push(userMessage);
-          session.messages.push(botMessage);
-        });
 
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
