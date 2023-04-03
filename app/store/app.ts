@@ -407,7 +407,6 @@ export const useChatStore = create<ChatStore>()(
 
           await Promise.all(
             parsedDocuments.map(async (doc: any) => {
-              console.log(doc);
               if (!isMessageInRecentMessages(recentMessages, doc.pageContent)) {
                 const knowledgeMessage: Message = {
                   role: "assistant",
@@ -463,6 +462,22 @@ export const useChatStore = create<ChatStore>()(
           sendMessages = recentMessages
             .concat(sendMessages)
             .concat(userMessage);
+        }
+
+        let tokenCount = countMessages(sendMessages);
+        if (tokenCount + this.config.modelConfig.max_tokens > 4000) {
+          sendMessages = sendMessages.reduce(
+            (acc: Message[], message: Message) => {
+              if (
+                message.role !== "assistant" ||
+                countMessages([message]) < 1000
+              ) {
+                acc.push(message);
+              }
+              return acc;
+            },
+            [],
+          );
         }
 
         const sessionIndex = get().currentSessionIndex;
