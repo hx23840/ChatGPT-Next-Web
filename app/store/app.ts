@@ -355,6 +355,18 @@ export const useChatStore = create<ChatStore>()(
           isVisible: false,
         };
 
+        const userMessage: Message = {
+          role: "user",
+          content,
+          date: new Date().toLocaleString(),
+          isVisible: true,
+        };
+
+        // save user's and bot's message
+        get().updateCurrentSession((session) => {
+          session.messages.push(userMessage);
+        });
+
         if (get().currentSession().bot_name.startsWith("caozbot")) {
           let jsonString = await getKnowledge(content);
           const parsedDocuments = JSON.parse(jsonString);
@@ -407,13 +419,6 @@ export const useChatStore = create<ChatStore>()(
           );
         }
 
-        const userMessage: Message = {
-          role: "user",
-          content,
-          date: new Date().toLocaleString(),
-          isVisible: true,
-        };
-
         const botMessage: Message = {
           content: "",
           role: "assistant",
@@ -422,18 +427,17 @@ export const useChatStore = create<ChatStore>()(
           isVisible: true,
         };
 
+        // save user's and bot's message
+        get().updateCurrentSession((session) => {
+          session.messages.push(botMessage);
+        });
+
         sendMessages = recentMessages
           .concat(sendMessages)
           .concat(userMessage)
           .concat(sysMessage);
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
-
-        // save user's and bot's message
-        get().updateCurrentSession((session) => {
-          session.messages.push(userMessage);
-          session.messages.push(botMessage);
-        });
 
         // make request
         console.log("[User Input Length] ", countMessages(sendMessages));
