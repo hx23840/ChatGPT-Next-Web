@@ -386,9 +386,9 @@ export const useChatStore = create<ChatStore>()(
           let userPromptMessage: Message = {
             role: "user",
             content:
-              "请使用以下内容回答所提供的问题。如果该内容不相关，请指出未找到任何信息。\n" +
-              "您的任务是阅读并理解给定的内容以回答特定问题。该内容可能包含任何主题的信息，因此在尝试回答问题之前仔细阅读并理解其内容非常重要，必要时使用内容中的详细信息。\n" +
-              "请注意，如果该内容不包含任何相关信息，则应声明未找到任何信息。",
+              "设定下面内容由你提供，请使用第一人称使用以下内容回答所提供的问题。如果该内容不相关，请指出未找到任何信息。" +
+              "您的任务是阅读并理解给定的内容以回答特定问题。该内容可能包含任何主题的信息，因此在尝试回答问题之前仔细阅读并理解其内容非常重要，" +
+              "请确保内容原封不动的输出。请注意，如果该内容不包含任何相关信息，则应声明未找到任何信息。",
             date: new Date().toLocaleString(),
             isVisible: false,
           };
@@ -397,26 +397,30 @@ export const useChatStore = create<ChatStore>()(
             parsedDocuments.map(async (doc: any) => {
               if (!isMessageInRecentMessages(recentMessages, doc.pageContent)) {
                 const knowledgeMessage: Message = {
-                  role: "user",
+                  role: "assistant",
                   content: doc.pageContent,
                   date: new Date().toLocaleString(),
                   isVisible: false,
                 };
 
                 const tokenCount = countMessages([knowledgeMessage]);
-                if (tokenCount > 100) {
+                if (tokenCount > 1000) {
                   let summaryMessage: Message = {
                     role: "user",
                     content:
-                      "Write a concise summary of the following and CONCISE SUMMARY, Control within 100 characters, Please answer use Chinese",
+                      "Summarize the following text into 100 words, making it easy to read and comprehend. " +
+                      "The summary should be concise, clear, and capture the main points of the text. " +
+                      "Avoid using complex sentence structures or technical jargon. " +
+                      "Please begin by editing the following text and answer with Chinese.",
                     date: "",
                     isVisible: false,
                   };
                   let messages = [summaryMessage].concat(knowledgeMessage);
                   const res = await requestChat(messages);
+
                   if (res) {
                     const knowledgeMessage: Message = {
-                      role: "user",
+                      role: "assistant",
                       content: res?.choices?.[0]?.message?.content as string,
                       date: new Date().toLocaleString(),
                       isVisible: false,
@@ -434,12 +438,12 @@ export const useChatStore = create<ChatStore>()(
             }),
           );
 
-          sendMessages = recentMessages
-            .concat([sysPromptMessage])
-            .concat([assistantPromptMessage])
-            .concat(userMessage)
+          sendMessages = [sysPromptMessage]
+            .concat(recentMessages)
+            // .concat([assistantPromptMessage])
             .concat([userPromptMessage])
-            .concat(sendMessages);
+            .concat(sendMessages)
+            .concat(userMessage);
         } else {
           sendMessages = recentMessages
             .concat(sendMessages)
