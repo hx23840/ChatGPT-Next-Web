@@ -44,6 +44,7 @@ const it: LocaleType = {
   Home: {
     NewChat: "Nuova Chat",
     DeleteChat: "Confermare la cancellazione della conversazione selezionata?",
+    NewCaozChat: "Talk to Cao",
   },
   Settings: {
     Title: "Impostazioni",
@@ -146,6 +147,9 @@ const it: LocaleType = {
         "Si prega di generare un titolo di quattro o cinque parole che riassuma la nostra conversazione senza alcuna traccia, punteggiatura, virgolette, punti, simboli o testo aggiuntivo. Rimuovere le virgolette",
       Summarize:
         "Riassumi brevemente la nostra discussione in 200 caratteri o meno per usarla come spunto per una futura conversazione.",
+      Caoz:
+        "I want you to act as a product development, research and development, data analysis, and architecture management expert." +
+        "His name is 曹政. Your task is to answer questions that users might ask and provide them with useful advice and guidance.",
     },
     ConfirmClearAll:
       "Confermi la cancellazione di tutti i dati della chat e delle impostazioni?",
