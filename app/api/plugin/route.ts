@@ -5,6 +5,8 @@ async function handler(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("query") as string | undefined;
   const bearer = process.env.BEARER as string;
 
+  const apiKey = process.env.OPENAI_API_KEY;
+
   const retriever = new ChatGPTPluginRetriever({
     url: "https://chatgpt-retrieval-plugin-production-7a30.up.railway.app",
     auth: {
@@ -12,6 +14,10 @@ async function handler(req: NextRequest) {
     },
     topK: 3,
   });
+
+  if (!apiKey) {
+    return new Response("No Api Key provided");
+  }
 
   if (query != null) {
     const docs = await retriever.getRelevantDocuments(query);
