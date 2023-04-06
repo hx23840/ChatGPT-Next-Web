@@ -387,6 +387,9 @@ export const useChatStore = create<ChatStore>()(
         let recentMessages = get().getMessagesWithMemory();
         let sendMessages: Message[] = [];
 
+        const sessionIndex = get().currentSessionIndex;
+        const messageIndex = get().currentSession().messages.length + 1;
+
         const userMessage: Message = {
           role: "user",
           content,
@@ -408,8 +411,28 @@ export const useChatStore = create<ChatStore>()(
         });
 
         if (get().currentSession().bot_name.startsWith("caozbot")) {
-          let jsonString = await getKnowledge(content);
-          const parsedDocuments = JSON.parse(jsonString);
+          let response = await getKnowledge(content);
+          let res_json = await response.text();
+
+          if (response.status == 500) {
+            botMessage.content = res_json;
+
+            get().updateCurrentSession((session) => {
+              session.messages.push(botMessage);
+            });
+
+            botMessage.streaming = false;
+            userMessage.isError = true;
+            botMessage.isError = true;
+            set(() => ({}));
+            ControllerPool.remove(sessionIndex, botMessage.id ?? messageIndex);
+            (botMessage.date = new Date().toLocaleString()), set(() => ({}));
+            ControllerPool.remove(sessionIndex, messageIndex);
+
+            return;
+          }
+
+          const parsedDocuments = JSON.parse(JSON.parse(res_json));
 
           let sysPromptMessage: Message = {
             role: "system",
@@ -442,52 +465,50 @@ export const useChatStore = create<ChatStore>()(
             isVisible: false,
           };
 
-          await Promise.all(
-            parsedDocuments.map(async (doc: any) => {
-              if (!isMessageInRecentMessages(recentMessages, doc.pageContent)) {
-                const knowledgeMessage: Message = {
-                  role: "assistant",
-                  content: doc.pageContent,
-                  date: new Date().toLocaleString(),
-                  isVisible: true,
+          for (const doc of parsedDocuments) {
+            if (!isMessageInRecentMessages(recentMessages, doc.pageContent)) {
+              const knowledgeMessage: Message = {
+                role: "assistant",
+                content: doc.pageContent,
+                date: new Date().toLocaleString(),
+                isVisible: true,
+              };
+
+              const tokenCount = countMessages([knowledgeMessage]);
+              if (tokenCount > 1000) {
+                let summaryMessage: Message = {
+                  role: "user",
+                  content:
+                    "Summarize the following text into 100 words, making it easy to read and comprehend. " +
+                    "The summary should be concise, clear, and capture the main points of the text. " +
+                    "Avoid using complex sentence structures or technical jargon. " +
+                    "Please begin by editing the following text and answer with Chinese.",
+                  date: "",
+                  isVisible: false,
                 };
+                let messages = [summaryMessage].concat(knowledgeMessage);
+                const res = await requestChat(messages);
 
-                const tokenCount = countMessages([knowledgeMessage]);
-                if (tokenCount > 1000) {
-                  let summaryMessage: Message = {
-                    role: "user",
-                    content:
-                      "Summarize the following text into 100 words, making it easy to read and comprehend. " +
-                      "The summary should be concise, clear, and capture the main points of the text. " +
-                      "Avoid using complex sentence structures or technical jargon. " +
-                      "Please begin by editing the following text and answer with Chinese.",
-                    date: "",
-                    isVisible: false,
+                if (res) {
+                  const knowledgeMessage: Message = {
+                    role: "assistant",
+                    content: res?.choices?.[0]?.message?.content as string,
+                    date: new Date().toLocaleString(),
+                    isVisible: true,
                   };
-                  let messages = [summaryMessage].concat(knowledgeMessage);
-                  const res = await requestChat(messages);
-
-                  if (res) {
-                    const knowledgeMessage: Message = {
-                      role: "assistant",
-                      content: res?.choices?.[0]?.message?.content as string,
-                      date: new Date().toLocaleString(),
-                      isVisible: true,
-                    };
-                    sendMessages = sendMessages.concat(knowledgeMessage);
-                  }
-                } else {
                   sendMessages = sendMessages.concat(knowledgeMessage);
                 }
-
-                get().updateCurrentSession((session) => {
-                  knowledgeMessage.content =
-                    "微信公众号原文：" + knowledgeMessage.content;
-                  session.messages.push(knowledgeMessage);
-                });
+              } else {
+                sendMessages = sendMessages.concat(knowledgeMessage);
               }
-            }),
-          );
+
+              get().updateCurrentSession((session) => {
+                knowledgeMessage.content =
+                  "微信公众号原文：" + knowledgeMessage.content;
+                session.messages.push(knowledgeMessage);
+              });
+            }
+          }
 
           sendMessages = [sysPromptMessage]
             .concat(recentMessages)
@@ -522,9 +543,6 @@ export const useChatStore = create<ChatStore>()(
         });
 
         botMessage.date = new Date().toLocaleString();
-
-        const sessionIndex = get().currentSessionIndex;
-        const messageIndex = get().currentSession().messages.length + 1;
 
         // make request
         console.log("[User Input Length] ", countMessages(sendMessages));

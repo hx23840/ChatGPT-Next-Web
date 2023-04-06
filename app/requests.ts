@@ -45,8 +45,7 @@ function getHeaders() {
 }
 
 export async function getKnowledge(query: string) {
-  const response = await fetch(`/api/plugin?query=` + query);
-  return response.text();
+  return await fetch(`/api/plugin?query=` + query);
 }
 
 export function requestOpenaiClient(path: string) {

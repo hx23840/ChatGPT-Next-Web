@@ -1,11 +1,11 @@
 import { ChatGPTPluginRetriever } from "langchain/retrievers";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 async function handler(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("query") as string | undefined;
   const bearer = process.env.BEARER as string;
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY as string;
 
   const retriever = new ChatGPTPluginRetriever({
     url: "https://chatgpt-retrieval-plugin-production-7a30.up.railway.app",
@@ -15,15 +15,27 @@ async function handler(req: NextRequest) {
     topK: 3,
   });
 
-  if (!apiKey) {
-    return new Response("No Api Key provided");
+  if (apiKey) {
+    console.log("[Auth] set system token");
+  } else {
+    return NextResponse.json(
+      JSON.stringify("No Api Key provided"),
+
+      {
+        status: 500,
+      },
+    );
   }
 
   if (query != null) {
     const docs = await retriever.getRelevantDocuments(query);
-    return new Response(JSON.stringify(docs));
+    return NextResponse.json(JSON.stringify(docs), {
+      status: 200,
+    });
   } else {
-    return new Response("No query provided");
+    return NextResponse.json(JSON.stringify("No Query provided"), {
+      status: 500,
+    });
   }
 }
 
