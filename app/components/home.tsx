@@ -19,7 +19,6 @@ import CloseIcon from "../icons/close.svg";
 import { useChatStore } from "../store";
 import { isMobileScreen } from "../utils";
 import Locale from "../locales";
-import { ChatList } from "./chat-list";
 import { Chat } from "./chat";
 
 import dynamic from "next/dynamic";
@@ -39,6 +38,10 @@ const Settings = dynamic(async () => (await import("./settings")).Settings, {
   loading: () => <Loading noLogo />,
 });
 
+const ChatList = dynamic(async () => (await import("./chat-list")).ChatList, {
+  loading: () => <Loading noLogo />,
+});
+
 function useSwitchTheme() {
   const config = useChatStore((state) => state.config);
 
@@ -52,11 +55,23 @@ function useSwitchTheme() {
       document.body.classList.add("light");
     }
 
-    const themeColor = getComputedStyle(document.body)
-      .getPropertyValue("--theme-color")
-      .trim();
-    const metaDescription = document.querySelector('meta[name="theme-color"]');
-    metaDescription?.setAttribute("content", themeColor);
+    const metaDescriptionDark = document.querySelector(
+      'meta[name="theme-color"][media]',
+    );
+    const metaDescriptionLight = document.querySelector(
+      'meta[name="theme-color"]:not([media])',
+    );
+
+    if (config.theme === "auto") {
+      metaDescriptionDark?.setAttribute("content", "#151515");
+      metaDescriptionLight?.setAttribute("content", "#fafafa");
+    } else {
+      const themeColor = getComputedStyle(document.body)
+        .getPropertyValue("--theme-color")
+        .trim();
+      metaDescriptionDark?.setAttribute("content", themeColor);
+      metaDescriptionLight?.setAttribute("content", themeColor);
+    }
   }, [config.theme]);
 }
 
