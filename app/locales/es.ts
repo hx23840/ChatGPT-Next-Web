@@ -51,6 +51,8 @@ const es: LocaleType = {
     NewChat: "Nuevo chat",
     NewCaozChat: "Talk to Cao",
     DeleteChat: "¿Confirmar eliminación de la conversación seleccionada?",
+    DeleteToast: "Chat Deleted",
+    Revert: "Revert",
   },
   Settings: {
     Title: "Configuración",
@@ -59,6 +61,12 @@ const es: LocaleType = {
       ClearAll: "Borrar todos los datos",
       ResetAll: "Restablecer todas las configuraciones",
       Close: "Cerrar",
+      ConfirmResetAll: {
+        Confirm: "Are you sure you want to reset all configurations?",
+      },
+      ConfirmClearAll: {
+        Confirm: "Are you sure you want to reset all chat?",
+      },
     },
     Lang: {
       Name: "Language",

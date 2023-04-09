@@ -49,6 +49,8 @@ const tw: LocaleType = {
     NewChat: "新的對話",
     NewCaozChat: "和曹大聊聊天",
     DeleteChat: "確定要刪除選取的對話嗎？",
+    DeleteToast: "已刪除對話",
+    Revert: "撤銷",
   },
   Settings: {
     Title: "設定",
@@ -57,6 +59,12 @@ const tw: LocaleType = {
       ClearAll: "清除所有數據",
       ResetAll: "重置所有設定",
       Close: "關閉",
+      ConfirmResetAll: {
+        Confirm: "Are you sure you want to reset all configurations?",
+      },
+      ConfirmClearAll: {
+        Confirm: "Are you sure you want to reset all chat?",
+      },
     },
     Lang: {
       Name: "Language",

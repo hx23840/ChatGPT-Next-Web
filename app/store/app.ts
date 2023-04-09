@@ -9,9 +9,10 @@ import {
   requestChatStream,
   requestWithPrompt,
 } from "../requests";
-import { trimTopic } from "../utils";
+import { isMobileScreen, trimTopic } from "../utils";
 
 import Locale from "../locales";
+import { showToast } from "../components/ui-lib";
 import { it } from "node:test";
 import locales from "../locales";
 
@@ -214,6 +215,7 @@ interface ChatStore {
   removeSession: (index: number) => void;
   moveSession: (from: number, to: number) => void;
   selectSession: (index: number) => void;
+  deleteSession: () => void;
   newSession: (bot_name: string) => void;
   currentSession: () => ChatSession;
   onNewMessage: (message: Message) => void;
@@ -358,6 +360,27 @@ export const useChatStore = create<ChatStore>()(
 
           get().updateCurrentSession((session) => {
             session.messages.push(helloMessage);
+          });
+        }
+      },
+
+      deleteSession() {
+        const deletedSession = get().currentSession();
+        const index = get().currentSessionIndex;
+        const isLastSession = get().sessions.length === 1;
+        if (!isMobileScreen() || confirm(Locale.Home.DeleteChat)) {
+          get().removeSession(index);
+
+          showToast(Locale.Home.DeleteToast, {
+            text: Locale.Home.Revert,
+            onClick() {
+              set((state) => ({
+                sessions: state.sessions
+                  .slice(0, index)
+                  .concat([deletedSession])
+                  .concat(state.sessions.slice(index + Number(isLastSession))),
+              }));
+            },
           });
         }
       },
