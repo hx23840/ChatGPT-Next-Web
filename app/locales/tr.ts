@@ -52,6 +52,7 @@ const tr: LocaleType = {
     DeleteChat: "Seçili sohbeti silmeyi onaylıyor musunuz?",
     DeleteToast: "Sohbet Silindi",
     Revert: "Geri Al",
+    NewCaozChat: "Talk to Cao",
   },
   Settings: {
     Title: "Ayarlar",
@@ -162,6 +163,9 @@ const tr: LocaleType = {
         "Lütfen herhangi bir giriş, noktalama işareti, tırnak işareti, nokta, sembol veya ek metin olmadan konuşmamızı özetleyen dört ila beş kelimelik bir başlık oluşturun. Çevreleyen tırnak işaretlerini kaldırın.",
       Summarize:
         "Gelecekteki bağlam için bir bilgi istemi olarak kullanmak üzere tartışmamızı en fazla 200 kelimeyle özetleyin.",
+      Caoz:
+        "I want you to act as a product development, research and development, data analysis, and architecture management expert." +
+        "His name is 曹政. Your task is to answer questions that users might ask and provide them with useful advice and guidance.",
     },
     ConfirmClearAll:
       "Tüm sohbet ve ayar verilerini temizlemeyi onaylıyor musunuz?",
