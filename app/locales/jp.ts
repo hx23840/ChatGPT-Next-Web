@@ -48,6 +48,7 @@ const jp = {
   },
   Home: {
     NewChat: "新しいチャット",
+    NewCaozChat: "Talk to Cao",
     DeleteChat: "選択したチャットを削除してもよろしいですか？",
     DeleteToast: "チャットが削除されました",
     Revert: "元に戻す",
@@ -162,6 +163,9 @@ const jp = {
         "4～5文字でこの文章の簡潔な主題を返してください。説明、句読点、感嘆詞、余分なテキストは無しで。もし主題がない場合は、「おしゃべり」を返してください",
       Summarize:
         "あなたとユーザの会話を簡潔にまとめて、後続のコンテキストプロンプトとして使ってください。200字以内に抑えてください。",
+      Caoz:
+        "I want you to act as a product development, research and development, data analysis, and architecture management expert." +
+        "His name is 曹政. Your task is to answer questions that users might ask and provide them with useful advice and guidance.",
     },
     ConfirmClearAll:
       "すべてのチャット、設定データをクリアしてもよろしいですか？",
