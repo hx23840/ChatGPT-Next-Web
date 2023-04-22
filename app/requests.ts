@@ -1,14 +1,22 @@
 import type { ChatRequest, ChatResponse } from "./api/openai/typing";
-import { Message, ModelConfig, useAccessStore, useChatStore } from "./store";
+import {
+  Message,
+  ModelConfig,
+  ModelType,
+  useAccessStore,
+  useAppConfig,
+  useChatStore,
+} from "./store";
 import { showToast } from "./components/ui-lib";
 
-const TIME_OUT_MS = 30000;
+const TIME_OUT_MS = 60000;
 
 const makeRequestParam = (
   messages: Message[],
   options?: {
     filterBot?: boolean;
     stream?: boolean;
+    model?: ModelType;
   },
 ): ChatRequest => {
   let sendMessages = messages.map((v) => ({
@@ -20,11 +28,16 @@ const makeRequestParam = (
     sendMessages = sendMessages.filter((m) => m.role !== "assistant");
   }
 
-  const modelConfig = { ...useChatStore.getState().config.modelConfig };
+  const modelConfig = { ...useAppConfig.getState().modelConfig };
 
   // @yidadaa: wont send max_tokens, because it is nonsense for Muggles
   // @ts-expect-error
   delete modelConfig.max_tokens;
+
+  // override model config
+  if (options?.model) {
+    modelConfig.model = options.model;
+  }
 
   return {
     messages: sendMessages,
@@ -54,7 +67,7 @@ export async function getKnowledge(query: string) {
 
 export function requestOpenaiClient(path: string) {
   return (body: any, method = "POST") =>
-    fetch("/api/openai?_vercel_no_cache=1", {
+    fetch("/api/openai", {
       method,
       headers: {
         "Content-Type": "application/json",
@@ -65,8 +78,16 @@ export function requestOpenaiClient(path: string) {
     });
 }
 
-export async function requestChat(messages: Message[]) {
-  const req: ChatRequest = makeRequestParam(messages, { filterBot: true });
+export async function requestChat(
+  messages: Message[],
+  options?: {
+    model?: ModelType;
+  },
+) {
+  const req: ChatRequest = makeRequestParam(messages, {
+    filterBot: true,
+    model: options?.model,
+  });
 
   const res = await requestOpenaiClient("v1/chat/completions")(req);
 
@@ -118,6 +139,10 @@ export async function requestUsage() {
     response.total_usage = Math.round(response.total_usage) / 100;
   }
 
+  if (total.hard_limit_usd) {
+    total.hard_limit_usd = Math.round(total.hard_limit_usd * 100) / 100;
+  }
+
   return {
     used: response.total_usage,
     subscription: total.hard_limit_usd,
@@ -129,6 +154,7 @@ export async function requestChatStream(
   options?: {
     filterBot?: boolean;
     modelConfig?: ModelConfig;
+    model?: ModelType;
     onMessage: (message: string, done: boolean) => void;
     onError: (error: Error, statusCode?: number) => void;
     onController?: (controller: AbortController) => void;
@@ -137,6 +163,7 @@ export async function requestChatStream(
   const req = makeRequestParam(messages, {
     stream: true,
     filterBot: options?.filterBot,
+    model: options?.model,
   });
 
   console.log("[Request] ", req);
@@ -170,7 +197,6 @@ export async function requestChatStream(
       options?.onController?.(controller);
 
       while (true) {
-        // handle time out, will stop if no response in 10 secs
         const resTimeoutId = setTimeout(() => finish(), TIME_OUT_MS);
         const content = await reader?.read();
         clearTimeout(resTimeoutId);
@@ -204,7 +230,13 @@ export async function requestChatStream(
   }
 }
 
-export async function requestWithPrompt(messages: Message[], prompt: string) {
+export async function requestWithPrompt(
+  messages: Message[],
+  prompt: string,
+  options?: {
+    model?: ModelType;
+  },
+) {
   messages = messages.concat([
     {
       role: "user",
@@ -214,7 +246,7 @@ export async function requestWithPrompt(messages: Message[], prompt: string) {
     },
   ]);
 
-  const res = await requestChat(messages);
+  const res = await requestChat(messages, options);
 
   return res?.choices?.at(0)?.message?.content ?? "";
 }
@@ -237,6 +269,14 @@ export const ControllerPool = {
     const key = this.key(sessionIndex, messageId);
     const controller = this.controllers[key];
     controller?.abort();
+  },
+
+  stopAll() {
+    Object.values(this.controllers).forEach((v) => v.abort());
+  },
+
+  hasPending() {
+    return Object.values(this.controllers).length > 0;
   },
 
   remove(sessionIndex: number, messageId: number) {

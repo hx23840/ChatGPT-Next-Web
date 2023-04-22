@@ -1,4 +1,4 @@
-import { SubmitKey } from "../store/app";
+import { SubmitKey } from "../store/config";
 import type { LocaleType } from "./index";
 
 const tw: LocaleType = {
@@ -18,6 +18,7 @@ const tw: LocaleType = {
       Copy: "複製",
       Stop: "停止",
       Retry: "重試",
+      Delete: "刪除",
     },
     Rename: "重命名對話",
     Typing: "正在輸入…",
@@ -76,6 +77,7 @@ const tw: LocaleType = {
         it: "Italiano",
         tr: "Türkçe",
         jp: "日本語",
+        de: "Deutsch",
       },
     },
     Avatar: "大頭貼",
@@ -104,6 +106,11 @@ const tw: LocaleType = {
       ListCount: (builtin: number, custom: number) =>
         `內置 ${builtin} 條，用戶定義 ${custom} 條`,
       Edit: "編輯",
+      Modal: {
+        Title: "提示詞列表",
+        Add: "增加一條",
+        Search: "搜尋提示詞",
+      },
     },
     HistoryCount: {
       Title: "附帶歷史訊息數",

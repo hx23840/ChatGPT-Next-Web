@@ -10,10 +10,9 @@ async function createStream(req: NextRequest) {
 
   const contentType = res.headers.get("Content-Type") ?? "";
   if (!contentType.includes("stream")) {
-    const content = (await res.text()).replace(
-      /provided:.*. You/,
-      "provided: ***. You",
-    );
+    const content = await (
+      await res.text()
+    ).replace(/provided:.*. You/, "provided: ***. You");
     console.log("[Stream] error ", content);
     return "```json\n" + content + "```";
   }
@@ -60,6 +59,4 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// export const config = {
-//   runtime: "edge",
-// };
+export const runtime = "experimental-edge";
