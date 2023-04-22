@@ -50,6 +50,7 @@ const de: LocaleType = {
   },
   Home: {
     NewChat: "Neuer Chat",
+    NewCaozChat: "Talk to Cao",
     DeleteChat: "Bestätigen Sie, um das ausgewählte Gespräch zu löschen?",
     DeleteToast: "Chat gelöscht",
     Revert: "Zurücksetzen",
@@ -170,6 +171,9 @@ const de: LocaleType = {
         "Bitte erstellen Sie einen vier- bis fünfwörtigen Titel, der unser Gespräch zusammenfasst, ohne Einleitung, Zeichensetzung, Anführungszeichen, Punkte, Symbole oder zusätzlichen Text. Entfernen Sie Anführungszeichen.",
       Summarize:
         "Fassen Sie unsere Diskussion kurz in 200 Wörtern oder weniger zusammen, um sie als Pronpt für zukünftige Gespräche zu verwenden.",
+      Caoz:
+        "I want you to act as a product development, research and development, data analysis, and architecture management expert." +
+        "His name is 曹政. Your task is to answer questions that users might ask and provide them with useful advice and guidance.",
     },
     ConfirmClearAll:
       "Bestätigen Sie, um alle Chat- und Einstellungsdaten zu löschen?",

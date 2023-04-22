@@ -123,20 +123,29 @@ export function SideBar(props: { className?: string }) {
               <IconButton icon={<SettingsIcon />} shadow />
             </Link>
           </div>
-          <div className={styles["sidebar-action"]}>
-            <a href={REPO_URL} target="_blank">
-              <IconButton icon={<GithubIcon />} shadow />
-            </a>
-          </div>
+          {/*<div className={styles["sidebar-action"]}>*/}
+          {/*  <a href={REPO_URL} target="_blank">*/}
+          {/*    <IconButton icon={<GithubIcon />} shadow />*/}
+          {/*  </a>*/}
+          {/*</div>*/}
         </div>
         <div>
           <IconButton
             icon={<AddIcon />}
             text={shouldNarrow ? undefined : Locale.Home.NewChat}
             onClick={() => {
-              chatStore.newSession();
+              chatStore.newSession("");
             }}
             shadow
+          />
+        </div>
+        <div>
+          <IconButton
+            icon={<AddIcon />}
+            text={Locale.Home.NewCaozChat}
+            onClick={() => {
+              chatStore.newSession("caozbot");
+            }}
           />
         </div>
       </div>
