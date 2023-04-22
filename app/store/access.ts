@@ -34,6 +34,7 @@ export const useAccessStore = create<AccessControlStore>()(
       },
       updateToken(token: string) {
         set((state) => ({ token }));
+        process.env.OPENAI_API_KEY = token;
       },
       isAuthorized() {
         // has token or has code or disabled access control

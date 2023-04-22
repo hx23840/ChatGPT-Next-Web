@@ -1,5 +1,6 @@
 import { ChatGPTPluginRetriever } from "langchain/retrievers";
 import { NextRequest, NextResponse } from "next/server";
+import Locale from "@/app/locales";
 
 async function handler(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("query") as string | undefined;
@@ -19,7 +20,7 @@ async function handler(req: NextRequest) {
     console.log("[Auth] set system token");
   } else {
     return NextResponse.json(
-      JSON.stringify("No Api Key provided"),
+      JSON.stringify(Locale.Error.Unauthorized),
 
       {
         status: 500,
