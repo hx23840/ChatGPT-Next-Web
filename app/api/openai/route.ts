@@ -7,6 +7,7 @@ async function makeRequest(req: NextRequest) {
     const res = new NextResponse(api.body);
     res.headers.set("Content-Type", "application/json");
     res.headers.set("Cache-Control", "no-cache");
+
     return res;
   } catch (e) {
     console.error("[OpenAI] ", req.body, e);
@@ -30,4 +31,4 @@ export async function GET(req: NextRequest) {
   return makeRequest(req);
 }
 
-// export const runtime = "experimental-edge";
+export const runtime = "experimental-edge";
