@@ -64,6 +64,7 @@ function getHeaders() {
 }
 
 export async function getKnowledge(query: string) {
+  getHeaders();
   return await fetch(`/api/plugin?query=` + query);
 }
 
