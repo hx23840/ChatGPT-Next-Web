@@ -58,14 +58,15 @@ function getHeaders() {
     headers["token"] = accessStore.token;
   }
 
-  process.env.OPENAI_API_KEY = accessStore.token;
-
   return headers;
 }
 
 export async function getKnowledge(query: string) {
-  getHeaders();
-  return await fetch(`/api/plugin?query=` + query);
+  return await fetch(`/api/plugin?query=` + query, {
+    headers: {
+      ...getHeaders(),
+    },
+  });
 }
 
 export function requestOpenaiClient(path: string) {

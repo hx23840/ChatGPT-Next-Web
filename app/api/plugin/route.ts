@@ -8,6 +8,9 @@ async function handler(req: NextRequest) {
 
   const apiKey = process.env.OPENAI_API_KEY as string;
 
+  const headers = req.headers;
+  const token = headers.get("token");
+
   const retriever = new ChatGPTPluginRetriever({
     url: "https://chatgpt-retrieval-plugin-production-7a30.up.railway.app",
     auth: {
@@ -17,6 +20,8 @@ async function handler(req: NextRequest) {
   });
 
   if (apiKey) {
+    console.log("[Auth] set system token");
+  } else if (token) {
     console.log("[Auth] set system token");
   } else {
     return NextResponse.json(
