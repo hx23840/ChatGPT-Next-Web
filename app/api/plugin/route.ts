@@ -1,13 +1,11 @@
 import { ChatGPTPluginRetriever } from "langchain/retrievers";
 import { NextRequest, NextResponse } from "next/server";
 import Locale from "@/app/locales";
-import { useAccessStore } from "@/app/store";
 
 async function handler(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("query") as string | undefined;
   const bearer = process.env.BEARER as string;
 
-  const accessStore = useAccessStore.getState();
   const apiKey = process.env.OPENAI_API_KEY as string;
 
   const retriever = new ChatGPTPluginRetriever({
@@ -19,8 +17,6 @@ async function handler(req: NextRequest) {
   });
 
   if (apiKey) {
-    console.log("[Auth] set system token");
-  } else if (accessStore.token && accessStore.token.length > 0) {
     console.log("[Auth] set system token");
   } else {
     return NextResponse.json(

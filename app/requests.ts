@@ -58,6 +58,8 @@ function getHeaders() {
     headers["token"] = accessStore.token;
   }
 
+  process.env.OPENAI_API_KEY = accessStore.token;
+
   return headers;
 }
 
