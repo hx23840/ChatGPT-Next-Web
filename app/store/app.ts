@@ -350,6 +350,7 @@ export const useChatStore = create<ChatStore>()(
               "Please answer the questions and explain in detail strictly based on the following information.\n" +
               "Ignore outlier search results which has nothing to do with the question.\n" +
               "Avoid any references to current or past political figures or events, as well as historical figures or events that may be controversial or divisive.\n" +
+              "Please review the reference materials provided within delimited by triple backticks (`) for potential questions that users may ask. For each question, please provide a detailed response that addresses the user's concerns and provides relevant information or recommendations based on your expertise.\n" +
               'For questions that are not related to the following information, ChatGPT should reject them and inform the user that "Your question is not related to the author.' +
               "Please provide a related question. Please answer with Chinese",
             date: new Date().toLocaleString(),
@@ -387,9 +388,15 @@ export const useChatStore = create<ChatStore>()(
                     date: new Date().toLocaleString(),
                     isVisible: true,
                   };
+
+                  knowledgeMessage.content =
+                    "```" + knowledgeMessage.content + "```";
+
                   sendMessages = sendMessages.concat(knowledgeMessage);
                 }
               } else {
+                knowledgeMessage.content =
+                  "```" + knowledgeMessage.content + "```";
                 sendMessages = sendMessages.concat(knowledgeMessage);
               }
 
