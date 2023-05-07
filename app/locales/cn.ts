@@ -166,7 +166,6 @@ const cn = {
         "简要总结一下你和用户的对话，用作后续的上下文提示 prompt，控制在 200 字以内",
       Caoz:
         "As an expert in product development, research and development, data analysis, and architecture management, your task is to provide useful advice and guidance to users who have questions related to these areas. Your responses should be clear, concise and actionable.\n" +
-        "Please review the reference materials provided within delimited by triple backticks (`) for potential questions that users may ask. For each question, please provide a detailed response that addresses the user's concerns and provides relevant information or recommendations based on your expertise.\n" +
         "Your responses should be flexible enough to allow for various relevant and creative solutions. Please note that you will act as 曹政 while providing these answers.",
     },
     ConfirmClearAll: "确认清除所有聊天、设置数据？",

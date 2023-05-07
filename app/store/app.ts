@@ -288,7 +288,7 @@ export const useChatStore = create<ChatStore>()(
 
         const botMessage: Message = {
           content: "",
-          role: "assistant",
+          role: "user",
           date: new Date().toLocaleString(),
           streaming: true,
           isVisible: true,
@@ -325,32 +325,25 @@ export const useChatStore = create<ChatStore>()(
 
           const parsedDocuments = JSON.parse(JSON.parse(res_json));
 
-          let sysPromptMessage: Message = {
-            role: "system",
-            content: Locale.Store.Prompt.Caoz,
-            date: new Date().toLocaleString(),
-            isVisible: false,
-          };
-
-          let assistantPromptMessage: Message = {
-            role: "assistant",
-            content:
-              "请提供一个问题和相关参考内容，以帮助我更好地回答您的问题。",
-            date: new Date().toLocaleString(),
-            isVisible: false,
-          };
+          // let sysPromptMessage: Message = {
+          //   role: "system",
+          //   content: Locale.Store.Prompt.Caoz,
+          //   date: new Date().toLocaleString(),
+          //   isVisible: false,
+          // };
+          //
+          // let assistantPromptMessage: Message = {
+          //   role: "assistant",
+          //   content:
+          //     "请提供一个问题和相关参考内容，以帮助我更好地回答您的问题。",
+          //   date: new Date().toLocaleString(),
+          //   isVisible: false,
+          // };
 
           let userPromptMessage: Message = {
             role: "user",
-            // content:
-            //   "设定下面内容由你提供，请使用第一人称使用以下内容回答所提供的问题。如果该内容不相关，请指出未找到任何信息。" +
-            //   "您的任务是阅读并理解给定的内容以回答特定问题。该内容可能包含任何主题的信息，因此在尝试回答问题之前仔细阅读并理解其内容非常重要，" +
-            //   "请确保内容原封不动的输出。请注意，如果该内容不包含任何相关信息，则应声明未找到任何信息。",
             content:
-              "Please answer the questions and explain in detail strictly based on the following information.\n" +
-              "Please review the reference materials provided within delimited by triple backticks (`) for potential questions that users may ask. " +
-              "For each question, please provide a detailed response that addresses the user's concerns and provides relevant information or recommendations based on your expertise.\n" +
-              "Please provide a related question. Please answer with Chinese",
+              'answer with the text delimited by triple backticks,if the text don\'t have the question,please answer: "我不知道".',
             date: new Date().toLocaleString(),
             isVisible: false,
           };
@@ -358,7 +351,7 @@ export const useChatStore = create<ChatStore>()(
           for (const doc of parsedDocuments) {
             if (!isMessageInRecentMessages(recentMessages, doc.pageContent)) {
               const knowledgeMessage: Message = {
-                role: "assistant",
+                role: "user",
                 content: doc.pageContent,
                 date: new Date().toLocaleString(),
                 isVisible: true,
@@ -393,25 +386,28 @@ export const useChatStore = create<ChatStore>()(
                 //     sendMessages = sendMessages.concat(knowledgeMessage);
                 // }
               } else {
-                knowledgeMessage.content =
-                  "```" + knowledgeMessage.content + "```";
                 sendMessages = sendMessages.concat(knowledgeMessage);
               }
 
               get().updateCurrentSession((session) => {
-                knowledgeMessage.content =
-                  "微信公众号原文：" + knowledgeMessage.content;
                 session.messages.push(knowledgeMessage);
               });
             }
           }
 
-          sendMessages = [sysPromptMessage]
-            .concat(recentMessages)
-            // .concat([assistantPromptMessage])
-            .concat([userPromptMessage])
-            .concat(sendMessages)
-            .concat(userMessage);
+          userPromptMessage.content =
+            userPromptMessage.content +
+            "\n\n" +
+            "```" +
+            recentMessages.map((message) => message.content).join("\n\n") +
+            sendMessages.map((message) => message.content).join("\n\n") +
+            "```" +
+            "\n\n" +
+            userMessage.content;
+
+          sendMessages = [userPromptMessage];
+          //.concat(sendMessages)
+          //.concat(userMessage);
         } else {
           sendMessages = recentMessages
             .concat(sendMessages)
