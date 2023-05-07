@@ -348,10 +348,8 @@ export const useChatStore = create<ChatStore>()(
             //   "请确保内容原封不动的输出。请注意，如果该内容不包含任何相关信息，则应声明未找到任何信息。",
             content:
               "Please answer the questions and explain in detail strictly based on the following information.\n" +
-              "Ignore outlier search results which has nothing to do with the question.\n" +
-              "Avoid any references to current or past political figures or events, as well as historical figures or events that may be controversial or divisive.\n" +
-              "Please review the reference materials provided within delimited by triple backticks (`) for potential questions that users may ask. For each question, please provide a detailed response that addresses the user's concerns and provides relevant information or recommendations based on your expertise.\n" +
-              'For questions that are not related to the following information, ChatGPT should reject them and inform the user that "Your question is not related to the author.' +
+              "Please review the reference materials provided within delimited by triple backticks (`) for potential questions that users may ask. " +
+              "For each question, please provide a detailed response that addresses the user's concerns and provides relevant information or recommendations based on your expertise.\n" +
               "Please provide a related question. Please answer with Chinese",
             date: new Date().toLocaleString(),
             isVisible: false,
@@ -368,32 +366,32 @@ export const useChatStore = create<ChatStore>()(
 
               const tokenCount = countMessages([knowledgeMessage]);
               if (tokenCount > 1000) {
-                let summaryMessage: Message = {
-                  role: "user",
-                  content:
-                    "Summarize the following text into 100 words, making it easy to read and comprehend. " +
-                    "The summary should be concise, clear, and capture the main points of the text. " +
-                    "Avoid using complex sentence structures or technical jargon. " +
-                    "Please begin by editing the following text and answer with Chinese.",
-                  date: "",
-                  isVisible: false,
-                };
-                let messages = [summaryMessage].concat(knowledgeMessage);
-                const res = await requestChat(messages);
-
-                if (res) {
-                  const knowledgeMessage: Message = {
-                    role: "assistant",
-                    content: res?.choices?.[0]?.message?.content as string,
-                    date: new Date().toLocaleString(),
-                    isVisible: true,
-                  };
-
-                  knowledgeMessage.content =
-                    "```" + knowledgeMessage.content + "```";
-
-                  sendMessages = sendMessages.concat(knowledgeMessage);
-                }
+                // let summaryMessage: Message = {
+                //     role: "user",
+                //     content:
+                //         "Summarize the following text into 100 words, making it easy to read and comprehend. " +
+                //         "The summary should be concise, clear, and capture the main points of the text. " +
+                //         "Avoid using complex sentence structures or technical jargon. " +
+                //         "Please begin by editing the following text and answer with Chinese.",
+                //     date: "",
+                //     isVisible: false,
+                // };
+                // let messages = [summaryMessage].concat(knowledgeMessage);
+                // const res = await requestChat(messages);
+                //
+                // if (res) {
+                //     const knowledgeMessage: Message = {
+                //         role: "assistant",
+                //         content: res?.choices?.[0]?.message?.content as string,
+                //         date: new Date().toLocaleString(),
+                //         isVisible: true,
+                //     };
+                //
+                //     knowledgeMessage.content =
+                //         "```" + knowledgeMessage.content + "```";
+                //
+                //     sendMessages = sendMessages.concat(knowledgeMessage);
+                // }
               } else {
                 knowledgeMessage.content =
                   "```" + knowledgeMessage.content + "```";
